@@ -31,4 +31,25 @@ public class GlobalExceptionHandler {
 		ApiError apiError = new ApiError(ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
 	}
+
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiError> handleGeneric(Exception ex) {
+		ApiError apiError = new ApiError("Unexpected error", HttpStatus.INTERNAL_SERVER_ERROR);
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+	}
+
+	@ExceptionHandler({NullPointerException.class, IllegalArgumentException.class})
+	public ResponseEntity<ApiError> handleSelectedExceptions(Exception ex) {
+		ApiError apiError;
+		if (ex instanceof NullPointerException) {
+			apiError = new ApiError("Null value found", HttpStatus.INTERNAL_SERVER_ERROR);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+		} else if (ex instanceof IllegalArgumentException) {
+			apiError = new ApiError("Invalid argument", HttpStatus.BAD_REQUEST);
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
+		}
+		apiError = new ApiError("Unhandled error", HttpStatus.INTERNAL_SERVER_ERROR);
+		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(apiError);
+	}
+
 }
