@@ -1,17 +1,20 @@
 package com.suraj.linkedinms.post_service.controller;
 
+import com.suraj.linkedinms.post_service.auth.UserContextHolder;
 import com.suraj.linkedinms.post_service.dto.PostCreateRequestDto;
 import com.suraj.linkedinms.post_service.dto.PostDto;
 import com.suraj.linkedinms.post_service.entity.Post;
 import com.suraj.linkedinms.post_service.service.PostService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping("/core")
 @RequiredArgsConstructor
@@ -27,6 +30,8 @@ public class PostsController {
 
 	@GetMapping("/{postId}")
 	public ResponseEntity<PostDto> getPostById(@PathVariable("postId") Long postId) {
+		Long userId = UserContextHolder.getCurrentUserId();
+		log.info("User ID from UserContextHolder: {}", userId);
 		PostDto fetchedPost = postService.getPostById(postId);
 		return ResponseEntity.ok(fetchedPost);
 	}
