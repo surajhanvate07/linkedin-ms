@@ -1,0 +1,15 @@
+package com.suraj.linkedinms.event;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
+public class AcceptConnectionRequestEvent {
+	private Long senderUserId;
+	private Long receiverUserId;
+}

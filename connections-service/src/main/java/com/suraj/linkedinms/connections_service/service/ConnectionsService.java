@@ -6,4 +6,10 @@ import java.util.List;
 
 public interface ConnectionsService {
 	List<Person> getFirstDegreeConnections();
+
+	Boolean sendConnectionRequest(Long toReceiverUserId);
+
+	Boolean acceptConnectionRequest(Long fromSenderUserId);
+
+	Boolean rejectConnectionRequest(Long fromSenderUserId);
 }

@@ -1,6 +1,8 @@
 package com.suraj.linkedinms.post_service.service.impl;
 
+import com.suraj.linkedinms.post_service.entity.Post;
 import com.suraj.linkedinms.post_service.entity.PostLike;
+import com.suraj.linkedinms.post_service.event.PostLikedEvent;
 import com.suraj.linkedinms.post_service.exception.BadRequestException;
 import com.suraj.linkedinms.post_service.exception.ResourceNotFoundException;
 import com.suraj.linkedinms.post_service.repository.PostLikeRepository;
@@ -8,6 +10,7 @@ import com.suraj.linkedinms.post_service.repository.PostRepository;
 import com.suraj.linkedinms.post_service.service.PostLikeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,9 +20,13 @@ public class PostLikeServiceImpl implements PostLikeService {
 
 	public final PostRepository postRepository;
 	private final PostLikeRepository postLikeRepository;
+	private final KafkaTemplate<Long, PostLikedEvent> kafkaTemplate;
 
 	@Override
 	public void likePost(Long postId, Long userId) {
+		Post post = postRepository.findById(postId)
+				.orElseThrow(() -> new ResourceNotFoundException("Post not found with ID: " + postId));
+
 		boolean isPostExists = postRepository.existsById(postId);
 		if (!isPostExists) {
 			throw new ResourceNotFoundException("Post not found with ID: " + postId);
@@ -32,8 +39,17 @@ public class PostLikeServiceImpl implements PostLikeService {
 		postLike.setPostId(postId);
 		postLike.setUserId(userId);
 
-		postLikeRepository.save(postLike);
+		PostLike savedPostLike = postLikeRepository.save(postLike);
 		log.info("Post with ID: {} liked by user with ID: {}", postId, userId);
+
+		PostLikedEvent postLikedEvent = PostLikedEvent.builder()
+				.postId(postId)
+				.likedByUserId(userId)
+				.creatorId(post.getUserId())
+				.build();
+
+		log.info("Publishing PostLikedEvent to Kafka: {}", postLikedEvent);
+		kafkaTemplate.send("post-liked-topic", postId, postLikedEvent);
 	}
 
 	@Override
